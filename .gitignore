@@ -1,6 +1,7 @@
 # Hugo default output directory
+package-lock.json
+/node_modules/
 /static/index.json
-/public
 /resources/_gen/
 ## OS Files
 # Windows
