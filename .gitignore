@@ -3,6 +3,7 @@ package-lock.json
 /node_modules/
 /static/index.json
 /resources/_gen/
+/public
 ## OS Files
 # Windows
 Thumbs.db
