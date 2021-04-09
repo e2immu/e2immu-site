@@ -13,106 +13,23 @@ weight: 120
 toc: true
 ---
 
-{{< alert icon="💡" text="You can change the commands in the scripts section of `./package.json`." >}}
+## Gradle plugin
 
-## create
+The [Gradle plugin](https://github.com/e2immu/e2immu/tree/main/gradle-plugin) helps integrating the analyser in your Gradle workflow.
 
-Create new content for your site:
+All details about configuring the Gradle plugin are in the manual, see [Manuals →]({{< relref "manuals" >}}).
 
-{{< btn-copy text="npm run create" >}}
 
-```bash
-npm run create [path] [flags]
-```
+## IntelliJ IDEA plugin
 
-See also the Hugo docs: [hugo new](https://gohugo.io/commands/hugo_new/).
+The [IntelliJ plugin](https://github.com/e2immu/e2immu-intellij-plugin) is a highlighter for the IntelliJ IDEA. It shows the immutability of classes computed by the analyser in your source code editor.
 
-## lint
+The set-up involves a helper application, the [annotation store](https://github.com/e2immu/e2immu-annotation-store).
 
-Check scripts, styles, and markdown for errors:
+The plugin's operation is described in the manual, see [Manuals →]({{< relref "manuals" >}}).
 
-{{< btn-copy text="npm run lint" >}}
+## Plugins for other IDEs
 
-```bash
-npm run lint
-```
+There is no Eclipse plugin yet, nor one for any other IDE.
 
-### scripts
-
-Check scripts for errors:
-
-{{< btn-copy text="npm run lint:scripts" >}}
-
-```bash
-npm run lint:scripts [-- --fix]
-```
-
-### styles
-
-Check styles for errors:
-
-{{< btn-copy text="npm run lint:styles" >}}
-
-```bash
-npm run lint:styles [-- --fix]
-```
-
-### markdown
-
-Check markdown for errors:
-
-{{< btn-copy text="npm run lint:markdown" >}}
-
-```bash
-npm run lint:markdown [-- --fix]
-```
-
-## clean
-
-Delete temporary directories:
-
-{{< btn-copy text="npm run clean" >}}
-
-```bash
-npm run clean
-```
-
-## start
-
-Start local development server:
-
-{{< btn-copy text="npm run start" >}}
-
-```bash
-npm run start
-```
-
-## build
-
-Build production website:
-
-{{< btn-copy text="npm run build" >}}
-
-```bash
-npm run build
-```
-
-### functions
-
-Build Lambda functions:
-
-{{< btn-copy text="npm run build:functions" >}}
-
-```bash
-npm run build:functions
-```
-
-### preview
-
-Build production website including draft and future content:
-
-{{< btn-copy text="npm run build:preview" >}}
-
-```bash
-npm run build:preview
-```
+However, the setup with an annotation store allows collaboration between multiple developers, some who use Eclipse, some who use IntelliJ. As long as they upload their (part of) the analyser's results to the common store, they can both see each other's immutability information.  

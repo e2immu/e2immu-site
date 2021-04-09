@@ -19,6 +19,8 @@ Welcome to the _e2immu_ documentation.
 
 We recommend [The Road to Immutability →](https://www.e2immu.org/static/road-to-immutability/000-main.html) as a first introduction to the analyser. This document is also available as PDF in the [Tutorials →]({{< relref "tutorials" >}}) section.
 
+All downloads (sources, jars) can be found on _e2immu_'s [GitHub page →](https://github.com/e2immu).
+
 ## Timeline
 
 _e2immu_ is not ready yet. While all concepts are stable, the analyser is not robust enough yet to be applied in production settings.
@@ -26,8 +28,8 @@ _e2immu_ is not ready yet. While all concepts are stable, the analyser is not ro
 We try to adhere to the following timing:
 
 * 1st May 2021: open source release
-* 1st August 2021: alpha release
-* 1st November 2021: beta release
+* 1st August 2021: alpha release, one IDE plugin working
+* 1st November 2021: beta release, one IDE plugin working, can analyse most of its own code
 * 1st January 2022: version 1.0.0
 
 ## Contibuting

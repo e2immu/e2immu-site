@@ -16,7 +16,7 @@ toc: true
 
 The main manual is:
 
-* [e2immu manual →](https://www.e2immu.org/static/manual/000-main.html), 
-[PDF](https://www.e2immu.org/static/manual.pdf)
+* [e2immu manual →](/manual/000-main.html), 
+[PDF](/manual.pdf)
 
 This manual needs additional work.
