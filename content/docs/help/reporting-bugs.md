@@ -13,5 +13,6 @@ weight: 620
 toc: true
 ---
 
-I don't know yet.
-For now, just send a mail to bart.naudts@e2immu.org.
+The easiest way to report a bug is to create an issue in GitHub:
+
+* Create a [bug report for the analyser](https://github.com/e2immu/e2immu/issues/new?template=bug-report---.md)

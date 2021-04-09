@@ -17,7 +17,7 @@ toc: true
 
 Welcome to the _e2immu_ documentation.
 
-We recommend [The Road to Immutability →](https://www.e2immu.org/static/road-to-immutability/000-main.html) as a first introduction to the analyser. This document is also available as PDF in the [Tutorials →]({{< relref "tutorials" >}}) section.
+We recommend [The Road to Immutability →](/road-to-immutability/000-main.html) as a first introduction to the analyser. This document is also available as PDF in the [Tutorials →]({{< relref "tutorials" >}}) section.
 
 All downloads (sources, jars) can be found on _e2immu_'s [GitHub page →](https://github.com/e2immu).
 
@@ -35,46 +35,8 @@ We try to adhere to the following timing:
 ## Contibuting
 
 Please consider contribute to this open source project. You can make valuable
-contributions, according to your specialisation, interests or capabilities:
-
-### Bug reports, minor fixes, and test examples
-
-Especially now in the early phase, this area offers rich pickings, as the analyser is not that stable yet. Make sure
-you're testing against the latest version of the analyser.
-
-It is important to write test examples that are as concise as possible.
-
-### Library annotations
-
-The topic of library annotations can be worked on indefinitely. Once the analyser is sufficiently stable, it can propose
-an annotated API, which can then be improved manually.
-
-### User interfaces
-
-This topic can generally be split into two important aspects: design, and the different implementations.
-
-The design aspect centers around the most informative and least intrusive way of conveying the analyser's information.
-
-Implementations focus on the different IDEs, and the infrastructure necessary to run the analyser in the background.
-
-### Documentation and tutorials
-
-The educational aspect of the analyser is important. I'd almost say there cannot be sufficient material to promote good
-software engineering practices.
-
-Secondly, the analyser is a living piece of code, and catching up with the technical specification is a task in itself.
-
-Translations of key documents are welcomed as well, especially to promote the immutability concepts to aspiring or
-starting software developers. No one should be constrained in their programming skills by a lack of understanding of
-English.
-
-Finally, because many non-native speakers contribute in their second or third language, we welcome improved re-phrasings
-in case the text deviates too much from natural language.
-
-### The analyser core
-
-Contributing to the analyser core is not for the faint of heart, and probably requires a decent investment in time and
-effort before you can make meaningful improvements or extensions.
+contributions, according to your specialisation, interests and capabilities.
+Read more [here →]({{< relref "contributing">}}).
 
 ## Sponsoring
 
