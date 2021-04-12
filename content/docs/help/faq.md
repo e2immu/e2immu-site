@@ -33,3 +33,4 @@ IntelliJ is in development. Support for Eclipse and Visual Studio Code are plann
 It allows you to write and distribute commercial software that incorporates the analyser.
 Because of LGPL, I'm hoping that everyone can benefit from your improvements to the analyser.
 
+## Technical questions
