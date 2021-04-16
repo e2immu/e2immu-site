@@ -34,3 +34,36 @@ It allows you to write and distribute commercial software that incorporates the 
 Because of LGPL, I'm hoping that everyone can benefit from your improvements to the analyser.
 
 ## Technical questions
+
+### IllegalStateException
+
+The following exception is one of the two more common problems in the analyser:
+
+```
+07:50:04.282 [Test worker] ERROR org.e2immu.analyser.util.EventuallyFinalExtension - Overwriting effectively value: old: nullable instance type String, new object.toString()
+07:50:04.282 [Test worker] WARN org.e2immu.analyser.analyser.StatementAnalyser - Caught exception while analysing statement 3 of org.e2immu.analyser.testexample.Store_0.flexible(java.lang.Object,long)
+07:50:04.282 [Test worker] WARN org.e2immu.analyser.analyser.StatementAnalyser - Caught exception while analysing block 0 of: org.e2immu.analyser.testexample.Store_0.flexible(java.lang.Object,long)
+07:50:04.282 [Test worker] WARN org.e2immu.analyser.analyser.MethodAnalyser - Caught exception in method analyser: org.e2immu.analyser.testexample.Store_0.flexible(java.lang.Object,long)
+07:50:04.282 [Test worker] WARN org.e2immu.analyser.parser.Parser - Caught runtime exception while analysing type org.e2immu.analyser.testexample.Store_0
+
+Trying to overwrite final value
+java.lang.IllegalStateException: Trying to overwrite final value
+	at org.e2immu.support.EventuallyFinal.setFinal(EventuallyFinal.java:36)
+	at org.e2immu.analyser.util.EventuallyFinalExtension.setFinalAllowEquals(EventuallyFinalExtension.java:35)
+```
+
+The exception shows that because of internal problems, the analyser violates the core rule that once a decision on a topic has been made, it can never be changed anymore. The warning lines show which part of the source code caused the problem; the error line shows the competing values.
+
+### More than 10 iterations needed
+
+The second common exception is the "More than 10 iterations needed" one, really the opposite of the former.
+It indicates that for a certain topic, no decision was reached, and delays kept coming iteration after iteration.
+The cause is typically more difficult to pinpoint, and a _delay report_ is written in logger warnings.
+
+```
+java.lang.UnsupportedOperationException: More than 10 iterations needed for primary type org.e2immu.kvstore.Store?
+        at org.e2immu.analyser.analyser.PrimaryTypeAnalyser.analyse(PrimaryTypeAnalyser.java:203)
+        at org.e2immu.analyser.parser.Parser.analyseSortedType(Parser.java:191)
+```
+
+
