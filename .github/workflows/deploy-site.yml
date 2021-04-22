@@ -41,7 +41,7 @@ jobs:
             cp -r ${{ env.SOURCE }}* ${{ env.TARGET }}/
             cd target
             echo "www.e2immu.org" > CNAME
-            echo date "lastdeploy"
+            echo date > lastdeploy
             git config --local user.email "${{ env.GIT_EMAIL }}"
             git config --local user.name "${{ env.GIT_USERNAME }}"
             git add .
