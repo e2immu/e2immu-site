@@ -12,9 +12,9 @@ Desktop.ini
 $RECYCLE.BIN/
 
 # static from other projects
-#e2immu-support-javadoc/
-#road-to-immutability*
-#manual*
+e2immu-support-javadoc/
+road-to-immutability*
+manual*
 
 # OSX
 .DS_Store

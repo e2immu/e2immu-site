@@ -31,6 +31,7 @@ jobs:
       - name: install node and npm
         run: sudo apt install nodejs npm
 
+      - run: npm install
 
       - name: Run Hugo
         run: |
