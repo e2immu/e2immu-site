@@ -31,12 +31,7 @@ jobs:
       - name: install node and npm
         run: sudo apt install nodejs npm
 
-      - run: npm install
-
-      - name: Run Hugo
-        run: |
-          alias asciidoctor="asciidoctor --attribute=experimental=true --attribute=icons=font"
-          hugo --minify
+      - run: npm install && npm run build
       
       
       - name: deploy generated files to the live repo
