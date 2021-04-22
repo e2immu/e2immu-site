@@ -1,0 +1,61 @@
+name: github pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true  # Fetch Hugo themes (true OR recursive)
+          fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: 'latest'
+          # extended: true
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7
+
+      - run: gem install asciidoctor
+
+
+      - name: install node and npm
+        run: sudo apt install nodejs npm
+
+
+      - name: Run Hugo
+        run: |
+          alias asciidoctor="asciidoctor --attribute=experimental=true --attribute=icons=font"
+          hugo --minify
+      
+      
+      - name: deploy generated files to the live repo
+        env:
+          REPO: e2immu/e2immu.github.io
+          SOURCE: public/
+          TARGET: target/
+          GIT_USERNAME: action
+          GIT_EMAIL: action@github.com
+        run: |
+            git clone https://.:${{ secrets.GTOKEN }}@github.com/${{ env.REPO }} target
+            if [ -d ${{ env.TARGET }} ]; then rm -rf ${{ env.TARGET }}/*; fi
+            cp -r ${{ env.SOURCE }}* ${{ env.TARGET }}/
+            cd target
+            echo "www.e2immu.org" > CNAME
+            echo date "lastdeploy"
+            git config --local user.email "${{ env.GIT_EMAIL }}"
+            git config --local user.name "${{ env.GIT_USERNAME }}"
+            git add .
+            git commit -m "Github actions automatic build - `date +"%Y-%m-%d %H:%M"`"
+            git push origin --set-upstream master
+              
+
