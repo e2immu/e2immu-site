@@ -14,12 +14,6 @@ jobs:
           submodules: true  # Fetch Hugo themes (true OR recursive)
           fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
 
-      - name: Setup Hugo
-        uses: peaceiris/actions-hugo@v2
-        with:
-          hugo-version: 'latest'
-          # extended: true
-
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -31,11 +25,7 @@ jobs:
       - name: install node and npm
         run: sudo apt install nodejs npm
 
-
-      - name: Run Hugo
-        run: |
-          alias asciidoctor="asciidoctor --attribute=experimental=true --attribute=icons=font"
-          hugo --minify
+      - run: npm install && npm run build
       
       
       - name: deploy generated files to the live repo
@@ -51,7 +41,7 @@ jobs:
             cp -r ${{ env.SOURCE }}* ${{ env.TARGET }}/
             cd target
             echo "www.e2immu.org" > CNAME
-            echo date "lastdeploy"
+            echo date > lastdeploy
             git config --local user.email "${{ env.GIT_EMAIL }}"
             git config --local user.name "${{ env.GIT_USERNAME }}"
             git add .
