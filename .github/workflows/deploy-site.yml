@@ -40,7 +40,7 @@ jobs:
       
       - name: deploy generated files to the live repo
         env:
-          REPO: satyamkapoor/e2immu.github.io
+          REPO: e2immu/e2immu.github.io
           SOURCE: public/
           TARGET: target/
           GIT_USERNAME: action
@@ -51,6 +51,7 @@ jobs:
             cp -r ${{ env.SOURCE }}* ${{ env.TARGET }}/
             cd target
             echo "www.e2immu.org" > CNAME
+            echo date "lastdeploy"
             git config --local user.email "${{ env.GIT_EMAIL }}"
             git config --local user.name "${{ env.GIT_USERNAME }}"
             git add .
