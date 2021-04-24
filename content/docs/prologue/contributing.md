@@ -90,7 +90,7 @@ effort before you can make meaningful improvements or extensions.
 ## Coding Guidelines
 
 Contributions are expected to follow the coding guidelines promoted by the e2immu project itself as described in
-the [Road to Immutability](/road-to-immutability/000-main.html). This includes:
+the [Road to Immutability](/docs/road-to-immutability/000-main.html). This includes:
 
 - making use of immutable or eventually immutable types as much as possible
 - avoiding types that cannot be marked `@Container`

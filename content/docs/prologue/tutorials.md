@@ -16,8 +16,8 @@ toc: true
 
 The main tutorial to the concepts of the _e2immu_ analyser is:
 
-* [The Road to Immutability →](/road-to-immutability/000-main.html), 
-[PDF](/road-to-immutability.pdf)
+* [The Road to Immutability →](/docs/road-to-immutability/000-main.html), 
+[PDF](/docs/road-to-immutability.pdf)
 
 Some slide decks are available:
 
