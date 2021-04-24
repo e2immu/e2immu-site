@@ -28,6 +28,22 @@ some out-of-the-box classes that help with making your own code eventually immut
 Ideally, the results of the analyser are shown directly in your programming environment. At the moment, a plugin for
 IntelliJ is in development. Support for Eclipse and Visual Studio Code are planned.
 
+## Is e2immu secure?
+
+Interpreting this as "Is my source code safe?", the answer is: Yes!
+
+* The analyser reads your code and your jars; nothing can be done about that.
+* However, the analyser runs locally, in your environment. It is not Software as a Service. You have to install it
+(and currently, also build it first).
+* On your request, the analyser can write out *annotationXml* and *annotatedAPI* files, to a (build) folder of your choice.
+* On your request, the analyser can upload to the annotations (not the source!) to an annotation manager of your choice.
+The one provided in the project, `e2immu/annotation-manager`, can play that role.
+You control where it runs, if it runs.
+* In debug mode, the analyser can, on your request, write out an annotated version of you source code.
+
+The analyser is fully open source, so you can verify these claims. 
+It relies on a small number of other open source projects ([dependencies →]({{<relref "dependencies">}}) and [plugins →]({{<relref "plugins">}})), which you then should verify too.
+
 ## Why the LGPL license?
 
 It allows you to write and distribute commercial software that incorporates the analyser.
