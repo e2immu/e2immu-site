@@ -14,3 +14,4 @@ toc: true
 ---
 
 Primary requirement is Java 16.
+See https://www.e2immu.org/docs/manual.html#installing
