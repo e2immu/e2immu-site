@@ -26,7 +26,8 @@ The _e2immu_ project tries to be two things at the same time:
 
 * it aspires to be **educational**: large software projects are easier to maintain when code is highly compartimentalised. Knowing where modifications to objects take place is crucial. _e2immu_ introduces simple concepts such as _containers_, _eventually immutable_, and _effectively immutable_ classes to help you manage modification better.
 
-* at the same time, it provides a **static code analyser** to help you enforce the use of these concepts in your code base.
+* it provides a **static code analyser** to help you enforce the use of these concepts in your code base.
+Obviously, its implementation tries to follow all the recommendations!
 
 
 ## Timeline
