@@ -19,8 +19,7 @@ The best place to start reading about the  immutability concepts is:
 
 There's also a [slide deck](/powerpoint/SlideDeck1.pptx) covering the basic concepts.
 
-
-TL;DR
+### TL;DR
 
 * _modification_: changes to the object graph of an object's fields.
 
