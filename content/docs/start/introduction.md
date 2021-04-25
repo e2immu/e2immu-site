@@ -17,7 +17,7 @@ toc: true
 
 Welcome to the _e2immu_ documentation.
 
-We recommend [The Road to Immutability →](/road-to-immutability/000-main.html) as a first introduction to the analyser. This document is also available as PDF in the [Tutorials →]({{< relref "tutorials" >}}) section.
+We recommend [The Road to Immutability →](/docs/road-to-immutability.html) as a first introduction to the analyser. This document is also available as PDF in the [Immutability →]({{< relref "immutability" >}}) section.
 
 All downloads (sources, jars) can be found on _e2immu_'s [GitHub page →](https://github.com/e2immu).
 

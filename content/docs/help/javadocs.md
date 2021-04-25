@@ -9,8 +9,8 @@ images: []
 menu:
   docs:
     parent: "help"
-weight: 110
+weight: 210
 toc: true
 ---
 
-The javadocs of the e2immu-support-x.x.x.jar can be found [here](/e2immu-support-javadoc/index.html).
+The javadocs of the e2immu-support-x.x.x.jar can be found [here](/docs/e2immu-support-javadoc/index.html).

@@ -9,14 +9,13 @@ images: []
 menu:
   docs:
     parent: "help"
-weight: 102
+weight: 200
 toc: true
 ---
 
 
 The main manual is:
 
-* [e2immu manual →](/docs/manual/000-main.html), 
-[PDF](/docs/manual.pdf)
+* [e2immu manual →](/docs/manual.html), [PDF](/docs/manual.pdf)
 
 This manual needs additional work.
