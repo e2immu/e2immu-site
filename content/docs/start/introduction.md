@@ -1,7 +1,7 @@
 ---
 title: "Introduction"
 description: "e2immu is a static code analyser for Java"
-lead: "e2immu is a static code analyser for Java."
+lead: "e2immu is a static code analyser for Java, focusing on practical immutability."
 date: 2020-10-06T08:48:57+00:00
 lastmod: 2020-10-06T08:48:57+00:00
 draft: false
@@ -17,15 +17,23 @@ toc: true
 
 Welcome to the _e2immu_ documentation.
 
-We recommend [The Road to Immutability →](/docs/road-to-immutability.html) as a first introduction to the analyser. This document is also available as PDF in the [Immutability →]({{< relref "immutability" >}}) section.
+We recommend [The Road to Immutability →](/docs/road-to-immutability.html) as a first introduction to the project. This document is also available as PDF in the [Concepts →]({{< relref "concepts" >}}) section.
 
 All downloads (sources, jars) can be found on _e2immu_'s [GitHub page →](https://github.com/e2immu).
 
+
+The _e2immu_ project tries to be two things at the same time:
+
+* it aspires to be **educational**: large software projects are easier to maintain when code is highly compartimentalised. Knowing where modifications to objects take place is crucial. _e2immu_ introduces simple concepts such as _containers_, _eventually immutable_, and _effectively immutable_ classes to help you manage modification better.
+
+* at the same time, it provides a **static code analyser** to help you enforce the use of these concepts in your code base.
+
+
 ## Timeline
 
-_e2immu_ is not ready yet. While all concepts are stable, the analyser is not robust enough yet to be applied in production settings.
+**The _e2immu_ analyser is not ready yet**. While all concepts are stable, the analyser is not robust enough yet to be applied in production settings.
 
-We try to adhere to the following timing:
+The following schedule may prove to be realistic:
 
 * 1st May 2021: open source release
 * 1st August 2021: alpha release, one IDE plugin working

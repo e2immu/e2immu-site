@@ -13,5 +13,13 @@ weight: 140
 toc: true
 ---
 
-Primary requirement is Java 16.
-See https://www.e2immu.org/docs/manual.html#installing
+Building and installing the analyser and related projects is detailed in the [Installing e2immu →](https://www.e2immu.org/docs/manual.html#installing) section of the manual.
+
+TL;DR:
+
+STEP 1: clone the project(s) from GitHub, minimally [e2immu-support →](https://github.com/e2immu/e2immu-support) and [e2immu →](https://github.com/e2immu/e2immu)
+
+STEP 2: Use the Gradle wrapper and a Java JDK 16 to build and publish the jars to your local repository
+```
+./gradlew publishToMavenLocal
+```

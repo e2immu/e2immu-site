@@ -19,3 +19,8 @@ The main manual is:
 * [e2immu manual →](/docs/manual.html), [PDF](/docs/manual.pdf)
 
 This manual needs additional work.
+
+There's also a small slide deck:
+
+* [Slide deck 2](/powerpoint/SlideDeck2.pptx): slides about the _e2immu_ project
+
