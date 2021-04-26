@@ -17,16 +17,19 @@ Building and installing the analyser and related projects is detailed in the [In
 
 ### TL;DR
 
-STEP 1: clone the project(s) from GitHub, minimally [e2immu-support →](https://github.com/e2immu/e2immu-support) and [e2immu →](https://github.com/e2immu/e2immu)
+STEP 1: Ensure you have a JDK 16 (https://www.oracle.com/java/technologies/javase-jdk16-downloads.html) or better,
+and `git` (https://git-scm.com/download/win). 
 
-STEP 2: Use the Gradle wrapper and a Java JDK 16 to build and publish the jars to your local repository
+STEP 2: Clone the project(s) from GitHub, minimally [e2immu-support →](https://github.com/e2immu/e2immu-support) and [e2immu →](https://github.com/e2immu/e2immu).
+
+STEP 3: Use the Gradle wrapper and a Java JDK 16 to build and publish the jars to your local repository
 ```
 ./gradlew publishToMavenLocal
 ```
 
 Now the support jar, analyser, two helper jars, and the Gradle plugin are available in your local repo.
 
-STEP 3: Add the following snippet to the `settings.gradle` file of your project
+STEP 4: Add the following snippet to the `settings.gradle` file of your project
 ```
 pluginManagement {
     repositories {
@@ -67,4 +70,4 @@ Run the analyser on your project's code by executing
 ./gradlew e2immu-analyser
 ```
 
-STEP 4: Take a look at the [demo project →](https://www.e2immu.org/docs/manual.html#demo-project).
+STEP 5: Take a look at the [demo project →](https://www.e2immu.org/docs/manual.html#demo-project).
