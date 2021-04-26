@@ -66,3 +66,5 @@ Run the analyser on your project's code by executing
 ```
 ./gradlew e2immu-analyser
 ```
+
+STEP 4: Take a look at the [demo project →](https://www.e2immu.org/docs/manual.html#demo-project).
