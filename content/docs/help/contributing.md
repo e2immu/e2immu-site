@@ -1,7 +1,7 @@
 
 ---
 title: "Contributing"
-description: "Contibuting to e2immu"
+description: "Contributing to e2immu"
 lead: "Contributing to e2immu"
 date: 2020-10-13T15:21:01+02:00
 lastmod: 2020-10-13T15:21:01+02:00

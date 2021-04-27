@@ -41,9 +41,9 @@ The following schedule may prove to be realistic:
 * 1st November 2021: beta release, one IDE plugin working, can analyse most of its own code
 * 1st January 2022: version 1.0.0
 
-## Contibuting
+## Contributing
 
-Please consider contribute to this open source project. You can make valuable
+Please consider contributing to this open source project. You can make valuable
 contributions, according to your specialisation, interests and capabilities.
 Read more [here →]({{< relref "contributing">}}).
 

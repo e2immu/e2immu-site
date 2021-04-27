@@ -15,7 +15,7 @@ toc: true
 
 Next to promoting the use of practical immutability, the _e2immu_ project provides a static code analyser to help enforce the proper use of these immutability concepts.
 
-The analyser is _opinonated_: it warns against a number of bad practices, such as:
+The analyser is _opinionated_: it warns against a number of bad practices, such as:
 
 * Assigning to a field outside the type of that field, is not allowed. _Why?_ We believe that modification belongs to the type itself, as per the concept of a container. This may be too strong for certain situations. However, we insist that assignments to fields cannot be made outside the field itself.
 
