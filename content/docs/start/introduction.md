@@ -3,7 +3,7 @@ title: "Introduction"
 description: "e2immu is a static code analyser for Java"
 lead: "e2immu is a static code analyser for Java, focusing on practical immutability."
 date: 2020-10-06T08:48:57+00:00
-lastmod: 2020-10-06T08:48:57+00:00
+lastmod: 2023-10-23T16:04:57+00:00
 draft: false
 images: []
 menu:
@@ -34,12 +34,7 @@ Obviously, its implementation tries to follow all the recommendations!
 
 **The _e2immu_ analyser is not ready yet**. While all concepts are stable, the analyser is not robust enough yet to be applied in production settings.
 
-The following schedule may prove to be realistic:
-
-* 1st May 2021: open source release
-* 1st August 2021: alpha release, one IDE plugin working
-* 1st November 2021: beta release, one IDE plugin working, can analyse most of its own code
-* 1st January 2022: version 1.0.0
+As of 2023, the analyser provides the foundation of [CodeLaser →](https://codelaser.io)'s flagship product [JFocus →](https://www.codelaser.io/jfocus-start). As such, it is receiving the necessary attention to evolve towards a production release.
 
 ## Contributing
 
