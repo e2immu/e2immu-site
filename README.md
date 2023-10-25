@@ -23,4 +23,7 @@ npm run start
 A local site will be available on `http://localhost:1313`.
 
 
-
+Install a sub-module of git to create the /public folder by running
+```
+git submodule add -b master git@github.com:e2immu/e2immu.github.io.git public
+```
