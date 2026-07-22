@@ -39,8 +39,8 @@ lqipWidth = "20x"
 footer = "Powered by <a href=\"https://github.com/\">GitHub</a>, <a href=\"https://gohugo.io/\">Hugo</a>, and <a href=\"https://getdoks.org/\">Doks</a>"
 
 # Alert
-alert = false
-#alertText = "Like e2immu? <a class=\"alert-link\" href=\"https://github.com/h-enk/doks/stargazers\">Star on GitHub</a>. Thanks!</a>"
+alert = true
+alertText = "<strong>e2immu is archived.</strong> Its successor <strong>maddi</strong> is in active development &mdash; same ideas, rewritten analyser, Java and Kotlin. <a class=\"alert-link\" href=\"https://github.com/CodeLaser/maddi\">See maddi on GitHub</a>."
 
 # Edit Page
 docsRepo = "https://github.com/e2immu/e2immu-site"

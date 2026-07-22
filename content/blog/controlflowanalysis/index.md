@@ -3,7 +3,6 @@ title: "Control flow analysis in e2immu"
 description: "A primer to control flow analysis in e2immu"
 lead: "A primer to control flow analysis in e2immu"
 date: 2021-06-24T00:00:00+01:00
-date: 2021-06-24T00:00:00+01:00
 draft: false
 weight: 52
 contributors: ["Bart Naudts"]
