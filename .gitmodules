@@ -3,5 +3,5 @@
 	url = https://github.com/victoriadrake/hugo-theme-introduction.git
 [submodule "public"]
 	path = public
-	url = git@github.com:bnaudts/bnaudts.github.io.git
+	url = git@github.com:e2immu/e2immu.github.io.git
 	branch = master
