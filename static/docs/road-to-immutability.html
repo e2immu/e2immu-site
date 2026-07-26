@@ -698,6 +698,7 @@ This is the current edition of <em>The Road to Immutability</em>, maintained in
 <li><a href="#confinement-guard">6.6.1. The confinement guard</a></li>
 <li><a href="#ignored-stratum-boundary">6.6.2. The stratum boundary, by example</a></li>
 <li><a href="#sse-global-escape">6.6.3. Static side effects are the global-escape arm</a></li>
+<li><a href="#sse-safe-surface">6.6.4. Recognising an invisible escape: the safe-surface contract</a></li>
 </ul>
 </li>
 <li><a href="#value-based-classes">6.7. Value-based classes</a></li>
@@ -774,7 +775,8 @@ This is the current edition of <em>The Road to Immutability</em>, maintained in
 </li>
 <li><a href="#finalizers">14.3. Finalizers</a>
 <ul class="sectlevel3">
-<li><a href="#processors-and-finishers">14.3.1. Processors and finishers</a></li>
+<li><a href="#why-the-modification-exemption-matters">14.3.1. Why the modification exemption matters</a></li>
+<li><a href="#processors-and-finishers">14.3.2. Processors and finishers</a></li>
 </ul>
 </li>
 <li><a href="#utility-classes">14.4. Utility classes</a></li>
@@ -3249,6 +3251,39 @@ This is the <code>System.out</code> story above, read from the field&#8217;s own
 add, <code>println</code> is  <code>@StaticSideEffects</code> ; with it, the effect is sanctioned hidden content.</p>
 </div>
 </div>
+<div class="sect3">
+<h4 id="sse-safe-surface"><a class="anchor" href="#sse-safe-surface"></a><a class="link" href="#sse-safe-surface">6.6.4. Recognising an invisible escape: the safe-surface contract</a></h4>
+<div class="paragraph">
+<p>For a source method the analyzer <em>computes</em> the  <code>@StaticSideEffects</code> : it sees the assignment to, or the modifying call on,
+another type&#8217;s static field.
+But the sharpest escape is invisible from source.
+<code>System.setOut(other)</code> replaces the process-wide <code>System.out</code>; nothing in the JDK source the analyzer can reach
+says so, and its own body is empty to us.
+The same holds for <code>logger.addAppender(a)</code> reconfiguring a logging framework.</p>
+</div>
+<div class="paragraph">
+<p>An invisible escape is recorded the only way it can be&#8201;&#8212;&#8201;as a <em>contract</em> on the library&#8217;s safe surface, a
+declaration in the annotated API:</p>
+</div>
+<div class="listingblock">
+<div class="title">Example 45, a static side effect contracted on the safe surface</div>
+<div class="content">
+<pre class="rouge highlight"><code data-lang="java"><span class="kd">class</span> <span class="nc">System</span><span class="err">$</span> <span class="o">{</span>                                   <span class="c1">// annotated-API stand-in for java.lang.System</span>
+    <span class="nd">@IgnoreModifications</span> <span class="kd">static</span> <span class="kd">final</span> <span class="nc">PrintStream</span> <span class="n">out</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+    <span class="nd">@StaticSideEffects</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">setOut</span><span class="o">(</span><span class="nc">PrintStream</span> <span class="n">out</span><span class="o">)</span> <span class="o">{</span> <span class="o">}</span>   <span class="c1">// effect invisible from source</span>
+<span class="o">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A caller of a  <code>@StaticSideEffects</code>  method <em>inherits</em> the static side effect, transitively.
+This is the mechanism that lets the confinement guard tell "reconfiguring the mechanics of the stream" from
+"just using it": <code>sink.reconfigure()</code> on an  <code>@IgnoreModifications</code>  field, where <code>reconfigure()</code> calls
+<code>System.setOut</code>, propagates  <code>@StaticSideEffects</code>  up to <code>reconfigure()</code>, and the guard flags the call as leaving the ignored
+stratum&#8201;&#8212;&#8201;whereas <code>sink.println(x)</code>, calling only the confined <code>println</code>, passes.
+As with  <code>@IgnoreModifications</code> , this annotation is <em>contracted</em> on a library surface (never computed onto the
+library method itself), and on a source method it is <em>computed</em>, never trusted from an annotation.</p>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="value-based-classes"><a class="anchor" href="#value-based-classes"></a><a class="link" href="#value-based-classes">6.7. Value-based classes</a></h3>
@@ -3289,7 +3324,7 @@ However, we expect many immutable types will become value-classes.
 Revisiting the example from the previous section, we can construct a counter-example:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 45, immutable type which is not value-based</div>
+<div class="title">Example 46, immutable type which is not value-based</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span><span class="o">(</span><span class="n">hc</span><span class="o">=</span><span class="kc">true</span><span class="o">)</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">HasUniqueIdentifier</span><span class="o">&lt;</span><span class="no">K</span><span class="o">&gt;</span> <span class="o">{</span>
@@ -3326,7 +3361,7 @@ the field <code>k</code> is arguably the most important field, and its value is 
 <p>When it is clear a method returns an immutable set, but the formal type is <code>java.util.Set</code>, the  <code>@Immutable</code>  annotation can 'travel':</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 46, revisiting <code>SetBasedContainer4</code></div>
+<div class="title">Example 47, revisiting <code>SetBasedContainer4</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span><span class="o">(</span><span class="n">hc</span><span class="o">=</span><span class="kc">true</span><span class="o">)</span>
 <span class="kd">class</span> <span class="nc">SetBasedContainer4</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="o">{</span>
@@ -3392,7 +3427,7 @@ immutable.</p>
 <p>We start with the well-established <em>builder</em> pattern.</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 47, static nested builder type</div>
+<div class="title">Example 48, static nested builder type</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span>
 <span class="kd">class</span> <span class="nc">Point</span> <span class="o">{</span>
@@ -3457,7 +3492,7 @@ Once it is in the final state, it cannot change anymore.
 It is <em>eventually immutable</em>:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 48, use of <code>FirstThen</code> to make a type eventually immutable</div>
+<div class="title">Example 49, use of <code>FirstThen</code> to make a type eventually immutable</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="kd">class</span> <span class="nc">PolygonManager</span> <span class="o">{</span>
     <span class="c1">// initially, the polygon is in builder phase</span>
@@ -3487,7 +3522,7 @@ It is <em>eventually immutable</em>:</p>
 <p>We propose a system of eventual immutability based on a single transition of state inside an object.</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 49, state change in a boolean field</div>
+<div class="title">Example 50, state change in a boolean field</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span><span class="o">(</span><span class="n">after</span><span class="o">=</span><span class="s">"frozen"</span><span class="o">)</span>
 <span class="kd">class</span> <span class="nc">SimpleImmutableSet1</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="o">{</span>
@@ -3538,7 +3573,7 @@ The rules, however, are sufficiently general to support arbitrary preconditions,
 This example does not require an additional field, but relies on the empty/not-empty state change:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 50, state change going from empty to non-empty</div>
+<div class="title">Example 51, state change going from empty to non-empty</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span><span class="o">(</span><span class="n">after</span><span class="o">=</span><span class="s">"set"</span><span class="o">)</span>
 <span class="kd">class</span> <span class="nc">SimpleImmutableSet2</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="o">{</span>
@@ -3605,7 +3640,7 @@ on a parameter of eventually immutable type.
 Consider the following utility method for <a href="#support-eventuallyfinal">EventuallyFinal</a>, frequently used in the analyzer&#8217;s own code:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 51, utility method for <code>EventuallyFinal</code></div>
+<div class="title">Example 52, utility method for <code>EventuallyFinal</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="kd">public</span> <span class="kd">static</span> <span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="kt">void</span> <span class="nf">setFinalAllowEquals</span><span class="o">(</span>
         <span class="nd">@Mark</span><span class="o">(</span><span class="s">"isFinal"</span><span class="o">)</span> <span class="nc">EventuallyFinal</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="n">eventuallyFinal</span><span class="o">,</span> <span class="no">T</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span>
@@ -3653,7 +3688,7 @@ This can be annotated with  <code>@BeforeMark</code> .
 Employing <code>SimpleImmutableSet1</code> from the example above,</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 52, <code>@BeforeMark</code> annotation</div>
+<div class="title">Example 53, <code>@BeforeMark</code> annotation</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@BeforeMark</span>
 <span class="kd">public</span> <span class="nc">SimpleImmutableSet1</span> <span class="nf">create</span><span class="o">()</span> <span class="o">{</span>
@@ -3714,7 +3749,7 @@ and an <em>after</em> state (initialization done) associated with the particular
 The example below shows how this could be done for the <code>Verticle</code> interface of the <a href="https://vertx.io" target="_blank" rel="noopener">vertx.io framework</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 53, excerpts and annotations of <code>Verticle.java</code> and <code>AbstractVerticle.java</code></div>
+<div class="title">Example 54, excerpts and annotations of <code>Verticle.java</code> and <code>AbstractVerticle.java</code></div>
 <div class="content">
 <pre class="rouge highlight"><code>@FinalFields(after="init")
 interface Verticle {
@@ -3775,7 +3810,7 @@ Up to now, a method is only modifying when it assigns to a field, calls a modify
 However, there could be indirect modifications, as in:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 54, indirect modifications</div>
+<div class="title">Example 55, indirect modifications</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">CyclicReferences</span> <span class="o">{</span>
@@ -3974,7 +4009,7 @@ The general case, where objects of abstract types come in via a parameter, will 
 Consider the following example:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 55, concrete implementation of suppliers</div>
+<div class="title">Example 56, concrete implementation of suppliers</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@FinalFields</span> <span class="nd">@Container</span>
 <span class="kd">class</span> <span class="nc">ApplyLocalFunctions</span> <span class="o">{</span>
@@ -4042,7 +4077,7 @@ in <code>myIncrementer</code>, a modifying method is applied to <code>getAndIncr
 <p>Now, if we move away from suppliers, but use consumers, we can discuss:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 56, concrete implementation of consumers</div>
+<div class="title">Example 57, concrete implementation of consumers</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="kd">class</span> <span class="nc">ApplyLocalFunctions2</span> <span class="o">{</span>
 
@@ -4153,7 +4188,7 @@ when only containers are allowed, then the abstract types must not have implemen
 <p>Let&#8217;s go back to <code>NonEmptyImmutableList</code>, first defined in <a href="#abstract-methods">Abstract methods</a>:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 57, revisiting <code>NonEmptyImmutableList</code></div>
+<div class="title">Example 58, revisiting <code>NonEmptyImmutableList</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span>
 <span class="kd">interface</span> <span class="nc">NonEmptyImmutableList</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="kd">extends</span> <span class="nc">HasSize</span> <span class="o">{</span>
@@ -4177,7 +4212,7 @@ when only containers are allowed, then the abstract types must not have implemen
 <p>We start the discussion with the following immutable implementation of this interface:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 58, immutable implementation of <code>NonEmptyImmutableList</code></div>
+<div class="title">Example 59, immutable implementation of <code>NonEmptyImmutableList</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span>
 <span class="kd">class</span> <span class="nc">ImmutableOne</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="nc">NonEmptyImmutableList</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="o">{</span>
@@ -4259,7 +4294,7 @@ It will take care of the propagation of modifications from the concrete implemen
 <p>This results in the following annotations for <code>visit</code> in <code>ImmutableOne</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 59, the <code>visit</code> method in <code>ImmutableOne</code>, fully annotated</div>
+<div class="title">Example 60, the <code>visit</code> method in <code>ImmutableOne</code>, fully annotated</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@NotModified</span>
 <span class="kd">public</span> <span class="kt">void</span> <span class="nf">visit</span><span class="o">(</span><span class="nd">@IgnoreModifications</span> <span class="nd">@Independent</span><span class="o">(</span><span class="n">hc</span><span class="o">=</span><span class="kc">true</span><span class="o">)</span> <span class="nc">Consumer</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="n">consumer</span><span class="o">)</span> <span class="o">{</span>
@@ -4291,7 +4326,7 @@ will be marked  <code>@IgnoreModifications</code>  implicitly.
 <p>Looking at the more general case of a <code>forEach</code> implementation iterating over a list or array, we therefore end up with:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 60, a generic <code>forEach</code> implementation</div>
+<div class="title">Example 61, a generic <code>forEach</code> implementation</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@NotModified</span>
 <span class="kd">public</span> <span class="kt">void</span> <span class="nf">forEach</span><span class="o">(</span><span class="nd">@Independent</span><span class="o">(</span><span class="n">hc</span><span class="o">=</span><span class="kc">true</span><span class="o">)</span> <span class="nc">Consumer</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="n">consumer</span><span class="o">)</span> <span class="o">{</span>
@@ -4316,7 +4351,7 @@ the  <code>@Independent</code>  annotation.</p>
 <p>Let us apply the <code>visit</code> method of <code>NonEmptyImmutableList</code> to <code>StringBuilder</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 61, propagating the modification of <code>visit</code></div>
+<div class="title">Example 62, propagating the modification of <code>visit</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="kd">static</span> <span class="kt">void</span> <span class="nf">print</span><span class="o">(</span><span class="nd">@NotModified</span> <span class="nc">NonEmptyImmutableList</span><span class="o">&lt;</span><span class="nc">StringBuilder</span><span class="o">&gt;</span> <span class="n">list</span><span class="o">)</span> <span class="o">{</span>
     <span class="n">one</span><span class="o">.</span><span class="na">visit</span><span class="o">(</span><span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">::</span><span class="n">println</span><span class="o">);</span> <i class="conum" data-value="1"></i><b>(1)</b>
@@ -4346,7 +4381,7 @@ It may help to see the for-loop written out, if we temporarily assume that we ha
 <code>Iterable</code> to <code>NonEmptyImmutableList</code>, functionally identical to <code>visit</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 62, alternative implementation of <code>addNewLine</code></div>
+<div class="title">Example 63, alternative implementation of <code>addNewLine</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="kd">static</span> <span class="kt">void</span> <span class="nf">addNewLine</span><span class="o">(</span><span class="nd">@Modified</span> <span class="nc">NonEmptyImmutableList</span><span class="o">&lt;</span><span class="nc">StringBuilder</span><span class="o">&gt;</span> <span class="n">list</span><span class="o">)</span> <span class="o">{</span>
     <span class="k">for</span><span class="o">(</span><span class="nc">StringBuilder</span> <span class="nl">sb:</span> <span class="n">list</span><span class="o">)</span> <span class="o">{</span>
@@ -4369,7 +4404,7 @@ as stipulated in <a href="#modification">Modification</a>, in this relatively st
 allows us to contrast two different modifications:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 63, contrasting the modification on the parameter <code>sb</code> to that on <code>list</code></div>
+<div class="title">Example 64, contrasting the modification on the parameter <code>sb</code> to that on <code>list</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="kd">static</span> <span class="kt">void</span> <span class="nf">addNewLine</span><span class="o">(</span><span class="nd">@Modified</span> <span class="nc">NonEmptyList</span><span class="o">&lt;</span><span class="nc">StringBuilder</span><span class="o">&gt;</span> <span class="n">list</span><span class="o">)</span> <span class="o">{</span>
     <span class="n">list</span><span class="o">.</span><span class="na">visit</span><span class="o">(</span><span class="n">sb</span> <span class="o">-&gt;</span> <span class="n">sb</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s">"\n"</span><span class="o">));</span> <i class="conum" data-value="1"></i><b>(1)</b>
@@ -4399,7 +4434,7 @@ inside <code>list</code>, or a modification to <code>list</code> itself.
 In other words, applying the two methods further on, we cannot compute</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 64, using <code>print</code> and <code>addNewLine</code></div>
+<div class="title">Example 65, using <code>print</code> and <code>addNewLine</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="kd">static</span> <span class="nc">String</span> <span class="nf">useAddNewLine</span><span class="o">(</span><span class="nd">@NotModified</span> <span class="nc">StringBuilder</span> <span class="n">input</span><span class="o">)</span> <span class="o">{</span> <i class="conum" data-value="1"></i><b>(1)</b>
     <span class="nc">NonEmptyList</span><span class="o">&lt;</span><span class="nc">StringBuilder</span><span class="o">&gt;</span> <span class="n">list</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">One</span><span class="o">&lt;&gt;();</span>
@@ -4440,7 +4475,7 @@ We do not plan to keep track of the distinction between modification of hidden c
 <p>Finally, we mention again the modification to a field from a concrete lambda:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 65, modification of a field outside the scope</div>
+<div class="title">Example 66, modification of a field outside the scope</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nc">List</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;</span> <span class="n">strings</span> <span class="o">=</span> <span class="o">...</span>
 <span class="nd">@Modified</span>
@@ -4459,7 +4494,7 @@ Let us call this binding of parameters of hidden content to the field <em>conten
 and mark it using  <code>@Independent(hc=true)</code> , <em>content dependence</em>:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 66, constructor of <code>ImmutableOne</code></div>
+<div class="title">Example 67, constructor of <code>ImmutableOne</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="kd">private</span> <span class="kd">final</span> <span class="no">T</span> <span class="n">t</span><span class="o">;</span>
 
@@ -4473,7 +4508,7 @@ and mark it using  <code>@Independent(hc=true)</code> , <em>content dependence</
 annotation:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 67, more methods of <code>ImmutableOne</code></div>
+<div class="title">Example 68, more methods of <code>ImmutableOne</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@Independent</span><span class="o">(</span><span class="n">hc</span><span class="o">=</span><span class="kc">true</span><span class="o">)</span>
 <span class="nd">@Override</span>
@@ -4495,7 +4530,7 @@ and <a href="#computing-dependence">How to compute linking</a>, exactly because 
 <p>Another place where the hidden content linking can be seen, is the <em>for-each</em> statement:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 68, for-each loop and hidden content linking</div>
+<div class="title">Example 69, for-each loop and hidden content linking</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nc">ImmutableList</span><span class="o">&lt;</span><span class="nc">StringBuilder</span><span class="o">&gt;</span> <span class="n">list</span> <span class="o">=</span> <span class="o">...;</span>
 <span class="nc">List</span><span class="o">&lt;</span><span class="nc">StringBuilder</span><span class="o">&gt;</span> <span class="n">builders</span> <span class="o">=</span> <span class="o">...;</span>
@@ -4508,7 +4543,7 @@ and <a href="#computing-dependence">How to compute linking</a>, exactly because 
 <p>Because the <code>Collection</code> API contains an <code>add</code> method annotated as:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 69, <code>add</code> in <code>Collection</code> annotated</div>
+<div class="title">Example 70, <code>add</code> in <code>Collection</code> annotated</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@Modified</span>
 <span class="kt">boolean</span> <span class="nf">add</span><span class="o">(</span><span class="nd">@NotNull</span> <span class="nd">@Independent</span><span class="o">(</span><span class="n">hc</span><span class="o">=</span><span class="kc">true</span><span class="o">)</span> <span class="no">E</span> <span class="n">e</span><span class="o">);</span></code></pre>
@@ -4523,7 +4558,7 @@ Similarly, this loop variable contains hidden content from the <code>list</code>
 <p>Let us look at a possible implementation of <code>Collection.addAll</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 70, a possible implementation of <code>addAll</code> in <code>Collection</code></div>
+<div class="title">Example 71, a possible implementation of <code>addAll</code> in <code>Collection</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@Modified</span>
 <span class="kt">boolean</span> <span class="nf">addAll</span><span class="o">(</span><span class="nd">@NotNull</span><span class="o">(</span><span class="n">content</span><span class="o">=</span><span class="kc">true</span><span class="o">)</span> <span class="nd">@Independent</span><span class="o">(</span><span class="n">hc</span><span class="o">=</span><span class="kc">true</span><span class="o">)</span> <span class="nc">Collection</span><span class="o">&lt;?</span> <span class="kd">extends</span> <span class="no">E</span><span class="o">&gt;</span> <span class="n">collection</span><span class="o">)</span> <span class="o">{</span>
@@ -4549,7 +4584,7 @@ links to that of a container.</p>
 <p>Let us start with the simplest definition of an iterator, without <code>remove</code> method:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 71, the <code>Iterator</code> type, without <code>remove</code> method</div>
+<div class="title">Example 72, the <code>Iterator</code> type, without <code>remove</code> method</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@Container</span>
 <span class="kd">interface</span> <span class="nc">Iterator</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="o">{</span>
@@ -4574,7 +4609,7 @@ content held by the iterator.</p>
 <p>The interface <code>Iterable</code> is a supplier of iterators:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 72, the <code>Iterable</code> type</div>
+<div class="title">Example 73, the <code>Iterable</code> type</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span>
 <span class="kd">interface</span> <span class="nc">Iterable</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="o">{</span>
@@ -4593,7 +4628,7 @@ Second, the iterator itself is independent of the fields of the implementing typ
 <p>The loop, on a variable <code>list</code> of type implementing <code>Iterable&lt;T&gt;</code>, is expressed as <code>for(T t: list) { &#8230;&#8203; }</code>, and can be interpreted as</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 73, implementation of for-each using an <code>Iterator</code></div>
+<div class="title">Example 74, implementation of for-each using an <code>Iterator</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nc">Iterator</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="n">it</span> <span class="o">=</span> <span class="n">list</span><span class="o">.</span><span class="na">iterator</span><span class="o">();</span>
 <span class="k">while</span><span class="o">(</span><span class="n">it</span><span class="o">.</span><span class="na">hasNext</span><span class="o">())</span> <span class="o">{</span>
@@ -4612,7 +4647,7 @@ Second, the iterator itself is independent of the fields of the implementing typ
 <p>A concrete implementation of an iterator is often a nested type, static or not (inner class), of the iterable type:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 74, implementation of an <code>Iterator</code></div>
+<div class="title">Example 75, implementation of an <code>Iterator</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">ImmutableArray</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="nc">Iterable</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="o">{</span>
@@ -4706,7 +4741,7 @@ and 3 restricted to those fields that are 'exposed' to the outside world via lin
 to the element array of its enclosing type:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 75, implementation of an <code>Iterator</code> as a static nested type</div>
+<div class="title">Example 76, implementation of an <code>Iterator</code> as a static nested type</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">ImmutableArray</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="nc">Iterable</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="o">{</span>
@@ -4750,7 +4785,7 @@ The former allows modifications on the hidden content, whence the  <code>@Indepe
 In fact, any type communicating via immutable types to the outside world is independent:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 76, simple getter and setter, independent</div>
+<div class="title">Example 77, simple getter and setter, independent</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@Independent</span>
 <span class="nd">@Container</span>
@@ -5294,7 +5329,7 @@ of whether you want analyzer support or not.</p>
 single boolean, which is at the same time the data and the guard:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 77, most of <code>org.e2immu.support.FlipSwitch</code></div>
+<div class="title">Example 78, most of <code>org.e2immu.support.FlipSwitch</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span><span class="o">(</span><span class="n">after</span><span class="o">=</span><span class="s">"t"</span><span class="o">)</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">FlipSwitch</span> <span class="o">{</span>
@@ -5342,7 +5377,7 @@ Once it has been done, it can never be 'undone' again.</p>
 <p>One step up from <code>FlipSwitch</code> is <code>SetOnce</code>: a place-holder for one object which can be filled exactly once:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 78, parts of <code>org.e2immu.support.SetOnce</code></div>
+<div class="title">Example 79, parts of <code>org.e2immu.support.SetOnce</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span><span class="o">(</span><span class="n">hc</span><span class="o">=</span><span class="kc">true</span><span class="o">,</span> <span class="n">after</span><span class="o">=</span><span class="s">"t"</span><span class="o">)</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">SetOnce</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="o">{</span>
@@ -5408,7 +5443,7 @@ This can be ascertained with a helper method, which, as noted in the previous se
 Then, the state changes and the type becomes immutable:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 79, <code>org.e2immu.support.EventuallyFinal</code></div>
+<div class="title">Example 80, <code>org.e2immu.support.EventuallyFinal</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span><span class="o">(</span><span class="n">hc</span><span class="o">=</span><span class="kc">true</span><span class="o">,</span> <span class="n">after</span><span class="o">=</span><span class="s">"isFinal"</span><span class="o">)</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">EventuallyFinal</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="o">{</span>
@@ -5459,7 +5494,7 @@ Then, the state changes and the type becomes immutable:</p>
 allow free modifications, until the type is <em>frozen</em> and no modifications can be allowed anymore.</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 80, <code>org.e2immu.support.Freezable</code></div>
+<div class="title">Example 81, <code>org.e2immu.support.Freezable</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span><span class="o">(</span><span class="n">after</span><span class="o">=</span><span class="s">"frozen"</span><span class="o">)</span> <i class="conum" data-value="1"></i><b>(1)</b>
 <span class="kd">public</span> <span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">Freezable</span> <span class="o">{</span>
@@ -5507,7 +5542,7 @@ derived classes can never be immutable when their parents are not immutable.</p>
 <p>We discuss one example that makes use of (derives from) <code>Freezable</code>: a freezable map where no objects can be overwritten:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 81, part of <code>org.e2immu.support.SetOnceMap</code></div>
+<div class="title">Example 82, part of <code>org.e2immu.support.SetOnceMap</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span><span class="o">(</span><span class="n">hc</span><span class="o">=</span><span class="kc">true</span><span class="o">,</span> <span class="n">after</span><span class="o">=</span><span class="s">"frozen"</span><span class="o">)</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">SetOnceMap</span><span class="o">&lt;</span><span class="no">K</span><span class="o">,</span> <span class="no">V</span><span class="o">&gt;</span> <span class="kd">extends</span> <span class="nc">Freezable</span> <span class="o">{</span>
@@ -5568,7 +5603,7 @@ the same value to a key.</p>
 Properly implemented, it is an eventually immutable type:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 82, <code>org.e2immu.support.Lazy</code></div>
+<div class="title">Example 83, <code>org.e2immu.support.Lazy</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span><span class="o">(</span><span class="n">hc</span><span class="o">=</span><span class="kc">true</span><span class="o">,</span> <span class="n">after</span><span class="o">=</span><span class="s">"t"</span><span class="o">)</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">Lazy</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="o">{</span>
@@ -5662,7 +5697,7 @@ immutable types.</p>
 value, and transitions to another:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 83, <code>org.e2immu.support.FirstThen</code></div>
+<div class="title">Example 84, <code>org.e2immu.support.FirstThen</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span><span class="o">(</span><span class="n">hc</span><span class="o">=</span><span class="kc">true</span><span class="o">,</span> <span class="n">after</span><span class="o">=</span><span class="s">"mark"</span><span class="o">)</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">FirstThen</span><span class="o">&lt;</span><span class="no">S</span><span class="o">,</span> <span class="no">T</span><span class="o">&gt;</span> <span class="o">{</span>
@@ -5817,7 +5852,7 @@ We discuss them briefly, and refer to the user manual for an in-depth analysis.<
  <code>@Identity</code>  and  <code>@Fluent</code>  are <strong>computed</strong> by the analyzer, and are described first for that reason.</p>
 </div>
 <div class="paragraph">
-<p>Everything after them is <strong>not implemented</strong> at present:</p>
+<p>Everything after them is <strong>not implemented</strong> at present, with one partial exception:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -5826,7 +5861,9 @@ We discuss them briefly, and refer to the user manual for an in-depth analysis.<
 annotated APIs — but are never inferred from your code;</p>
 </li>
 <li>
-<p> <code>@Finalizer</code>  is likewise read as a contract, and none of its rules are enforced;</p>
+<p> <code>@Finalizer</code>  is read as a contract, and its <strong>modification semantics</strong> — a finalizer call does not count
+as a modification of the receiver — are implemented and load-bearing in the modification engine (see
+<a href="#finalizers">Finalizers</a>); the three life-cycle <strong>sequencing rules</strong> below are not enforced;</p>
 </li>
 <li>
 <p> <code>@ExtensionClass</code>  and  <code>@Singleton</code>  exist in <code>maddi-support</code>, but nothing in the analyzer reads them.</p>
@@ -5850,7 +5887,7 @@ The former are convenient to introduce preconditions, the latter occur frequentl
 Here is an integrated example:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 84, methods marked  <code>@Identity</code>  and  <code>@Fluent</code> </div>
+<div class="title">Example 85, methods marked  <code>@Identity</code>  and  <code>@Fluent</code> </div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@FinalFields</span><span class="o">(</span><span class="n">builds</span><span class="o">=</span><span class="nc">List</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
 <span class="kd">class</span> <span class="nc">Builder</span> <span class="o">{</span>
@@ -5955,7 +5992,7 @@ This concept is useful when working with collections.</p>
 <p>Consider the following  <code>@NotNull</code>  variants on the <code>List</code> API:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 85,  <code>@NotNull</code>  annotations on <code>Collection</code></div>
+<div class="title">Example 86,  <code>@NotNull</code>  annotations on <code>Collection</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="kt">boolean</span> <span class="nf">add</span><span class="o">(</span><span class="nd">@NotNull</span> <span class="no">E</span> <span class="n">e</span><span class="o">);</span>
 <span class="kt">boolean</span> <span class="nf">addAll</span><span class="o">(</span><span class="nd">@NotNull</span><span class="o">(</span><span class="n">content</span><span class="o">=</span><span class="kc">true</span><span class="o">)</span> <span class="nc">Collection</span><span class="o">&lt;?</span> <span class="kd">extends</span> <span class="no">E</span><span class="o">&gt;</span> <span class="n">collection</span><span class="o">);</span>
@@ -5985,7 +6022,7 @@ You are free to annotate differently!
 A second level would be useful when working with entry sets:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 86,  <code>@NotNull</code>  annotations on <code>Map</code></div>
+<div class="title">Example 87,  <code>@NotNull</code>  annotations on <code>Map</code></div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="no">V</span> <span class="nf">put</span><span class="o">(</span><span class="nd">@NotNull</span> <span class="no">K</span> <span class="n">key</span><span class="o">,</span> <span class="nd">@NotNull</span> <span class="no">V</span> <span class="n">value</span><span class="o">);</span>
 <span class="nd">@NotNull</span> <span class="kd">static</span> <span class="o">&lt;</span><span class="no">K</span><span class="o">,</span> <span class="no">V</span><span class="o">&gt;</span> <span class="nc">Map</span><span class="o">&lt;</span><span class="no">K</span><span class="o">,</span> <span class="no">V</span><span class="o">&gt;</span> <span class="nf">copyOf</span><span class="o">(</span><span class="nd">@NotNull</span> <span class="nc">Map</span><span class="o">&lt;?</span> <span class="kd">extends</span> <span class="no">K</span><span class="o">,</span> <span class="o">?</span> <span class="kd">extends</span> <span class="no">V</span><span class="o">&gt;</span> <span class="n">map</span><span class="o">);</span>
@@ -6008,11 +6045,44 @@ There is currently no plan to implement beyond  <code>@NotNull(content=true)</co
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-<strong>Not implemented.</strong>  <code>@Finalizer</code>  is read as a contract and shown in output, but none of the three rules
-below are enforced by the analyzer.
+<div class="paragraph">
+<p><strong>Partially implemented.</strong>  <code>@Finalizer</code>  is a contract (parsed from source annotations and from the
+annotated APIs, and shown in output), and its modification semantics are implemented: the analyzer
+exempts finalizer callees from receiver modification, at every layer that judges call sites
+(<code>MethodModification</code>, the shallow method summaries, and the modification-reachability shadow pass).
+The three life-cycle <strong>sequencing rules</strong> below are not enforced.</p>
+</div>
 </td>
 </tr>
 </table>
+</div>
+<div class="sect3">
+<h4 id="why-the-modification-exemption-matters"><a class="anchor" href="#why-the-modification-exemption-matters"></a><a class="link" href="#why-the-modification-exemption-matters">14.3.1. Why the modification exemption matters</a></h4>
+<div class="paragraph">
+<p>A finalizer marks the end of an object&#8217;s life-cycle: after the call, the object may not be used again.
+Whatever the finalizer does to the dying object is therefore invisible to the rest of the program — there
+is no "after" in which the change could be observed. The analyzer exploits this: <strong>a call to a
+ <code>@Finalizer</code>  method never marks its receiver as modified</strong>, whatever the method&#8217;s own  <code>@NotModified</code>/ <code>@Modified</code> 
+status.</p>
+</div>
+<div class="paragraph">
+<p>This is not a corner case; it is what keeps stream-based code analyzable at all. The annotated APIs mark
+the stream operations — <code>filter</code>, <code>map</code>, <code>flatMap</code>, <code>collect</code>, and their relatives — as  <code>@Finalizer</code> :
+each consumes the stream it is called on (using the receiver again afterwards is illegal), and none of
+them carries a  <code>@NotModified</code> contract. Without the exemption, every one of those calls would conservatively count
+as a modification of the receiver chain, and since a chain such as <code>this.elements.stream().map(&#8230;&#8203;)</code>
+roots in a field, the false modification would climb to the field and to <code>this</code> — making essentially
+every method containing a stream pipeline  <code>@Modified</code> , and sinking the immutability of its type. With the
+exemption, the pipeline is silent about its receivers, and only genuine evidence (the lambda&#8217;s captures,
+the collector&#8217;s target) determines the verdict.</p>
+</div>
+<div class="paragraph">
+<p>The same reasoning must be applied by <strong>every</strong> component that re-derives modification: when the
+modification-reachability pass (the post-convergence single writer) judges a call to a method outside
+the analysis scope, it mirrors the engine&#8217;s guard exactly — a boundary callee that is a finalizer
+contributes no receiver-modification evidence, no matter that its conservative no-information default
+would otherwise read as "modifying". A mismatch here is not benign: it silently poisons whole call
+chains with false modification, in code as central as the printing of a parameterized type.</p>
 </div>
 <div class="paragraph">
 <p>Up to now, we have focused on the distinction between the building phase of an object&#8217;s life-cycle, and its
@@ -6072,7 +6142,7 @@ after which you are not allowed to use it anymore.</p>
 <p>Let us start from the following example, using <a href="#support-eventuallyfinal">EventuallyFinal</a>:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 87, a type with a  <code>@Finalizer</code>  method</div>
+<div class="title">Example 88, a type with a  <code>@Finalizer</code>  method</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="kd">class</span> <span class="nc">ExampleWithFinalizer</span> <span class="o">{</span>
     <span class="nd">@BeforeMark</span>
@@ -6102,7 +6172,7 @@ after which you are not allowed to use it anymore.</p>
 <p>Using  <code>@Fluent</code>  methods to go from construction to finalizer is definitely allowed according to the rules:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 88, calling the finalizer method</div>
+<div class="title">Example 89, calling the finalizer method</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span>
 <span class="kd">public</span> <span class="kd">static</span> <span class="nc">EventuallyFinal</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;</span> <span class="nf">fluent</span><span class="o">()</span> <span class="o">{</span>
@@ -6119,7 +6189,7 @@ Actually, given our strong preference for containers, the recipient should not e
 Consider:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 89, illegal call</div>
+<div class="title">Example 90, illegal call</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ImmutableContainer</span>
 <span class="kd">public</span> <span class="kd">static</span> <span class="nc">EventuallyFinal</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;</span> <span class="nf">stepWise</span><span class="o">()</span> <span class="o">{</span>
@@ -6154,8 +6224,9 @@ Consider:</p>
 <p>Rules 1 and 2 allow you to store a finalizer type inside a field, but only when finalization is attached to the destruction of the holding type.
 Examples follow immediately, in the context of the  <code>@BeforeMark</code>  annotation.</p>
 </div>
+</div>
 <div class="sect3">
-<h4 id="processors-and-finishers"><a class="anchor" href="#processors-and-finishers"></a><a class="link" href="#processors-and-finishers">14.3.1. Processors and finishers</a></h4>
+<h4 id="processors-and-finishers"><a class="anchor" href="#processors-and-finishers"></a><a class="link" href="#processors-and-finishers">14.3.2. Processors and finishers</a></h4>
 <div class="paragraph">
 <p>It is worth observing that finalizers play well with the  <code>@BeforeMark</code>  annotation.
 They allow us to introduce the concepts of <em>processors</em> and <em>finishers</em> for eventually immutable types in their <em>before</em> state.</p>
@@ -6164,7 +6235,7 @@ They allow us to introduce the concepts of <em>processors</em> and <em>finishers
 <p>The purpose of a <em>processor</em> is to receive an object in the  <code>@BeforeMark</code>  state, hold it, use a lot of temporary data in the meantime, and then release it again, modified but still in the  <code>@BeforeMark</code>  state.</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 90, conceptual example of a processor</div>
+<div class="title">Example 91, conceptual example of a processor</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="kd">class</span> <span class="nc">Processor</span> <span class="o">{</span>
     <span class="kd">private</span> <span class="kt">int</span> <span class="n">count</span><span class="o">;</span> <i class="conum" data-value="1"></i><b>(1)</b>
@@ -6216,7 +6287,7 @@ In the meantime, it gets modified (finished), while there is other temporary dat
 Once the final state is reached, the analyzer guarantees that the temporary data is destroyed by severely limiting the scope of the finisher object.</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 91, conceptual example of finisher</div>
+<div class="title">Example 92, conceptual example of finisher</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="kd">class</span> <span class="nc">Finisher</span> <span class="o">{</span>
     <span class="kd">private</span> <span class="kt">int</span> <span class="n">count</span><span class="o">;</span> <i class="conum" data-value="1"></i><b>(1)</b>
@@ -6328,7 +6399,7 @@ Implementations of extensions typically use a utility class with the convention 
 static method is the object of the extended method call:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 92, an extension class</div>
+<div class="title">Example 93, an extension class</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@ExtensionClass</span><span class="o">(</span><span class="n">of</span><span class="o">=</span><span class="nc">String</span><span class="o">[].</span><span class="na">class</span><span class="o">)</span>
 <span class="kd">class</span> <span class="nc">ExtendStringArray</span> <span class="o">{</span>
@@ -6405,7 +6476,7 @@ using a private static boolean field.</p>
 <p>An example of the first strategy is:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 93, first mechanism to enforce a singleton</div>
+<div class="title">Example 94, first mechanism to enforce a singleton</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@Singleton</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">SingletonExample</span> <span class="o">{</span>
@@ -6428,7 +6499,7 @@ using a private static boolean field.</p>
 <p>An example of the second strategy is:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example 94, second mechanism to enforce a singleton</div>
+<div class="title">Example 95, second mechanism to enforce a singleton</div>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="java"><span class="nd">@Singleton</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">SingletonWithPrecondition</span> <span class="o">{</span>
